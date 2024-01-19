@@ -1,0 +1,74 @@
+ let getResult = await elasticClient.search({
+            index: 'bankifsc',
+            body: {
+                query: {
+                    term: {
+                        'IFSC': ifscCode
+                    }
+                }
+            }
+        });
+
+
+ let getResult = await elasticClient.search({
+            index: 'bankifsc', 
+            body: {
+                query: {
+                    bool: {
+                        must: [
+                            { term: { 'BRANCH': branchName } },
+                            { term: { 'IFSC': ifscCode } },
+                        ]
+                    }
+                }
+            }
+        });
+
+const { elasticClient } = require('../utils/elasticClient')
+
+const searchData = async (req, res) => {
+    try {
+        /* ---------------Validations------------ */
+        let { bank, branch, centre, city } = req.query;
+        
+        /* -------------Business Logic------------ */
+        let getResult = await elasticClient.search({
+            index: 'bankifsc',
+            body: {
+                query: {
+                    bool: {
+                        must: [
+                            { term: { 'BANK': bank } },
+                            { term: { 'BRANCH': branch } },
+                            { term: { 'CENTRE': centre } },
+                            { term: { 'CITY': city } },
+                        ]
+                    }
+                }
+            }
+        });
+
+        if (getResult.hits.total.value === 0) {
+            return res.status(400).json({ success: false, message: "No Bank Found" });
+        }
+
+        return res.status(200).json({ success: true, data: getResult.hits.hits });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+module.exports = { searchData };
+
+////////////////////////////////////////////////////////////////
+
+  let getResult = await elasticClient.search({
+            index: 'bankifsc',
+            body: {
+                query: {
+                    wildcard: {
+                        'BANK': `*${bankName}*`
+                    }
+                }
+            }
+        })
